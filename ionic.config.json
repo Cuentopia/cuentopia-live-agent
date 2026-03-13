@@ -1,0 +1,7 @@
+{
+  "name": "CuentopIA",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}

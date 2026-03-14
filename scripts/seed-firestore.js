@@ -1,15 +1,28 @@
 require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
 
+const USE_EMULATOR = process.argv.includes('--emulator');
+const EMULATOR_HOST = process.env.FIRESTORE_EMULATOR_HOST ?? 'localhost:8080';
+
 const PROJECT_ID = process.env.FIREBASE_PROJECT_ID;
 const API_KEY    = process.env.FIREBASE_API_KEY;
 
-if (!PROJECT_ID || !API_KEY) {
-  console.error('❌ Faltan FIREBASE_PROJECT_ID o FIREBASE_API_KEY en .env');
+if (!PROJECT_ID) {
+  console.error('❌ Falta FIREBASE_PROJECT_ID en .env');
+  process.exit(1);
+}
+if (!USE_EMULATOR && !API_KEY) {
+  console.error('❌ Falta FIREBASE_API_KEY en .env (o usa --emulator)');
   process.exit(1);
 }
 
-const AGENTS_URL = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/agents`;
-const THEMES_URL = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/storyThemes`;
+const BASE = USE_EMULATOR
+  ? `http://${EMULATOR_HOST}/v1/projects/${PROJECT_ID}/databases/(default)/documents`
+  : `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+
+if (USE_EMULATOR) console.log(`🔧 Apuntando al emulador en ${EMULATOR_HOST}`);
+
+const AGENTS_URL = `${BASE}/agents`;
+const THEMES_URL = `${BASE}/storyThemes`;
 
 const VISION_RULES =
   'REGLAS VISUALES:\n' +
@@ -242,14 +255,16 @@ const storyThemes = [
   },
 ];
 
+const keyParam = USE_EMULATOR ? '' : `?key=${API_KEY}`;
+
 async function docExists(baseUrl, id) {
-  const res = await fetch(`${baseUrl}/${id}?key=${API_KEY}`);
+  const res = await fetch(`${baseUrl}/${id}${keyParam}`);
   const data = await res.json();
   return !data.error;
 }
 
 async function upsertDoc(baseUrl, id, fields) {
-  const res = await fetch(`${baseUrl}/${id}?key=${API_KEY}`, {
+  const res = await fetch(`${baseUrl}/${id}${keyParam}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ fields }),

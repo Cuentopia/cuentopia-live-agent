@@ -18,6 +18,7 @@ interface StoryTheme {
   title: string;
   subtitle: string;
   icon: string;
+  imageUrl?: string;
   enabled: boolean;
   order: number;
 }
@@ -52,6 +53,15 @@ interface StoryTheme {
             @for (topic of topics(); track topic.id) {
               <ion-col size="12" size-md="6">
                 <ion-card (click)="selectTopic(topic)" button="true">
+                  @if (topic.imageUrl) {
+                    @defer (on viewport) {
+                      <img [src]="topic.imageUrl" [alt]="topic.title" class="theme-image" />
+                    } @placeholder {
+                      <div class="image-placeholder">
+                        <ion-spinner name="crescent"></ion-spinner>
+                      </div>
+                    }
+                  }
                   <ion-card-header>
                     <div class="topic-header">
                       <ion-icon [name]="topic.icon" color="primary" style="font-size: 32px;"></ion-icon>
@@ -74,7 +84,21 @@ interface StoryTheme {
       gap: 12px;
       margin-bottom: 8px;
     }
+    .theme-image {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+    .image-placeholder {
+      width: 100%;
+      height: 200px;
+      background-color: var(--ion-color-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
   `],
+
   standalone: true,
   imports: [
     IonHeader, IonToolbar, IonTitle, IonContent,

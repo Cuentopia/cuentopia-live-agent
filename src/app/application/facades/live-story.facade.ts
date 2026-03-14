@@ -45,6 +45,7 @@ export class LiveStoryFacade {
   private analyser: AnalyserNode | null = null;
   private waveformFrameId: number | null = null;
   private nextStartTime: number = 0;
+  private activeSources: AudioBufferSourceNode[] = [];
   private hasReceivedFirstChunk = false;
   private sessionSubs = new Subscription();
 
@@ -96,8 +97,8 @@ export class LiveStoryFacade {
             console.log('[CUE] ✅ Primer chunk recibido — sesión activa');
           }
           if (chunk.interrupted) {
-            console.log('[CUE] ⚡ Interrupción — vaciando queue de audio');
-            this.nextStartTime = 0;
+            console.log('[CUE] ⚡ Interrupción — cortando audio en curso');
+            this._stopAllSources();
             return;
           }
           if (chunk.visionCapture) {
@@ -128,7 +129,7 @@ export class LiveStoryFacade {
     this.storytellingPort.disconnect();
     this.mediaCapturePort.stopCapture();
     this._hasStream.set(false);
-    this.nextStartTime = 0;
+    this._stopAllSources();
     this.hasReceivedFirstChunk = false;
     if (this.audioContext && this.audioContext.state !== 'closed') {
       this.audioContext.close();
@@ -161,6 +162,15 @@ export class LiveStoryFacade {
     );
   }
 
+  private _stopAllSources(): void {
+    const now = this.audioContext?.currentTime ?? 0;
+    for (const source of this.activeSources) {
+      try { source.stop(now); } catch { /* already stopped */ }
+    }
+    this.activeSources = [];
+    this.nextStartTime = 0;
+  }
+
   private _playAudioChunk(base64PCM: string): void {
     if (!this.audioContext || !this.analyser) return;
 
@@ -182,6 +192,12 @@ export class LiveStoryFacade {
     const startTime = Math.max(this.audioContext.currentTime, this.nextStartTime);
     source.start(startTime);
     this.nextStartTime = startTime + buffer.duration;
+
+    this.activeSources.push(source);
+    source.onended = () => {
+      const idx = this.activeSources.indexOf(source);
+      if (idx !== -1) this.activeSources.splice(idx, 1);
+    };
   }
 
   private _startWaveformLoop(): void {
@@ -234,7 +250,7 @@ export class LiveStoryFacade {
     this.sessionSubs = new Subscription();
     this.storytellingPort.disconnect();
     this.mediaCapturePort.stopCapture();
-    this.nextStartTime = 0;
+    this._stopAllSources();
     this.hasReceivedFirstChunk = false;
     if (this.audioContext && this.audioContext.state !== 'closed') {
       this.audioContext.close();

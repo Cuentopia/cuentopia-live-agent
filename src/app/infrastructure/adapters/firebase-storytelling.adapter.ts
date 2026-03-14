@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 import { Observable, Subject } from 'rxjs';
-import { GoogleGenAI, Session, LiveServerMessage, Modality } from '@google/genai';
+import { GoogleGenAI, Session, LiveServerMessage, Modality, ActivityHandling, StartSensitivity } from '@google/genai';
 import { StorytellingPort, LiveContentChunk } from '../../core/ports/storytelling.port';
 import { AgentConfig } from '../../core/models/agent-config.model';
 
@@ -38,6 +38,13 @@ export class FirebaseStorytellingAdapter implements StorytellingPort {
           voiceConfig: { prebuiltVoiceConfig: { voiceName: config.voiceName } }
         },
         systemInstruction: { parts: [{ text: config.systemPrompt }] },
+        thinkingConfig: { thinkingBudget: 0 },
+        realtimeInputConfig: {
+          activityHandling: ActivityHandling.START_OF_ACTIVITY_INTERRUPTS,
+          automaticActivityDetection: {
+            startOfSpeechSensitivity: StartSensitivity.START_SENSITIVITY_HIGH,
+          },
+        },
       },
       callbacks: {
         onopen: () => {

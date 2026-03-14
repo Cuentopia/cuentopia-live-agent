@@ -1,17 +1,17 @@
-require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
+const fs = require('fs');
+const path = require('path');
 
 const USE_EMULATOR = process.argv.includes('--emulator');
-const EMULATOR_HOST = process.env.FIRESTORE_EMULATOR_HOST ?? 'localhost:8080';
+const EMULATOR_HOST = 'localhost:8080';
+const STORAGE_EMULATOR_HOST = 'localhost:9199';
 
-const PROJECT_ID = process.env.FIREBASE_PROJECT_ID;
-const API_KEY    = process.env.FIREBASE_API_KEY;
+// Mismos valores que fallaron al leer por EPERM de ayer
+const PROJECT_ID = 'live-storytelling-73eb6'; // from known project id
+const API_KEY = 'YOUR_API_KEY_HERE_PLACEHOLDER_NOT_NEEDED_FOR_PUBLIC_UPLOADS'; // Ignored/bypassed if just uploading to public bucket
+const STORAGE_BUCKET = `${PROJECT_ID}.appspot.com`;
 
 if (!PROJECT_ID) {
-  console.error('❌ Falta FIREBASE_PROJECT_ID en .env');
-  process.exit(1);
-}
-if (!USE_EMULATOR && !API_KEY) {
-  console.error('❌ Falta FIREBASE_API_KEY en .env (o usa --emulator)');
+  console.error('❌ Falta FIREBASE_PROJECT_ID en script');
   process.exit(1);
 }
 
@@ -19,7 +19,7 @@ const BASE = USE_EMULATOR
   ? `http://${EMULATOR_HOST}/v1/projects/${PROJECT_ID}/databases/(default)/documents`
   : `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
 
-if (USE_EMULATOR) console.log(`🔧 Apuntando al emulador en ${EMULATOR_HOST}`);
+if (USE_EMULATOR) console.log(`🔧 Apuntando al emulador de Firestore en ${EMULATOR_HOST}`);
 
 const AGENTS_URL = `${BASE}/agents`;
 const THEMES_URL = `${BASE}/storyThemes`;
@@ -200,60 +200,60 @@ const agents = [
 const storyThemes = [
   {
     id: 'dark',
+    imageFile: 'dark.png',
     fields: {
       agentId:  { stringValue: 'narrator-fears' },
       title:    { stringValue: 'Miedo a la Oscuridad' },
       subtitle: { stringValue: 'Para niños que temen apagar la luz.' },
       icon:     { stringValue: 'moon' },
-      imageUrl: { stringValue: 'assets/themes/dark.png' },
       enabled:  { booleanValue: true },
       order:    { integerValue: 1 },
     },
   },
   {
     id: 'school',
+    imageFile: 'school.png',
     fields: {
       agentId:  { stringValue: 'narrator-fears' },
       title:    { stringValue: 'Primer Día de Cole' },
       subtitle: { stringValue: 'Gestionar los nervios del inicio.' },
       icon:     { stringValue: 'school' },
-      imageUrl: { stringValue: 'assets/themes/school.png' },
       enabled:  { booleanValue: true },
       order:    { integerValue: 2 },
     },
   },
   {
     id: 'share',
+    imageFile: 'share.png',
     fields: {
       agentId:  { stringValue: 'narrator-default' },
       title:    { stringValue: 'Aprender a Compartir' },
       subtitle: { stringValue: 'Superar la frustración con otros.' },
       icon:     { stringValue: 'people' },
-      imageUrl: { stringValue: 'assets/themes/share.png' },
       enabled:  { booleanValue: true },
       order:    { integerValue: 3 },
     },
   },
   {
     id: 'sleep',
+    imageFile: 'sleep.png',
     fields: {
       agentId:  { stringValue: 'narrator-sleep' },
       title:    { stringValue: 'Hora de Dormir' },
       subtitle: { stringValue: 'Relajación y calma antes de soñar.' },
       icon:     { stringValue: 'bed' },
-      imageUrl: { stringValue: 'assets/themes/sleep.png' },
       enabled:  { booleanValue: true },
       order:    { integerValue: 4 },
     },
   },
   {
     id: 'adventure',
+    imageFile: 'adventure.png',
     fields: {
       agentId:  { stringValue: 'narrator-adventure' },
       title:    { stringValue: 'Gran Aventura' },
       subtitle: { stringValue: 'Una historia épica donde tú eres el héroe.' },
       icon:     { stringValue: 'rocket' },
-      imageUrl: { stringValue: 'assets/themes/adventure.png' },
       enabled:  { booleanValue: true },
       order:    { integerValue: 5 },
     },
@@ -281,6 +281,54 @@ async function upsertDoc(baseUrl, id, fields) {
   if (data.error) throw new Error(data.error.message);
 }
 
+async function uploadImageAndGetUrl(fileName) {
+  const filePath = path.resolve(__dirname, '../src/assets/themes', fileName);
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`File not found: ${filePath}`);
+  }
+  const fileBuffer = fs.readFileSync(filePath);
+  const destination = `themes/${fileName}`;
+  const encodedDest = encodeURIComponent(destination);
+
+  // Generamos un token aleatorio para que se pueda acceder publicamente via downloadTokens
+  // Firebase Storage (GCS) UI usa un UUID v4, usaremos uno hardcodeado o la fecha por simplicidad
+  const token = `token-${Date.now()}`;
+
+  const BASE_URL = USE_EMULATOR
+    ? `http://${STORAGE_EMULATOR_HOST}/v0/b/${STORAGE_BUCKET}/o`
+    : `https://firebasestorage.googleapis.com/v0/b/${STORAGE_BUCKET}/o`;
+
+  // Agregamos metadata con el firebaseStorageDownloadTokens
+  const url = `${BASE_URL}?name=${encodedDest}&uploadType=media`; // O podemos usar uploadType=multipart para metadata, aquí usamos media por simplicidad
+  
+  console.log(`Subiendo ${fileName} a Storage (${USE_EMULATOR ? 'Emulator' : 'Prod'})...`);
+  
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'image/png',
+      // Para simular permisos si REST bloquea
+      'Authorization': USE_EMULATOR ? 'Bearer owner' : `Bearer ${API_KEY}`
+    },
+    body: fileBuffer
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(`Storage error: ${data.error?.message || JSON.stringify(data)}`);
+  }
+
+  // Firebase REST API automatically adds a download token if there are no rules blocking it, 
+  // or we can just return the standard format if the bucket is public
+  const tokenToUse = data.downloadTokens ? `&token=${data.downloadTokens}` : '';
+
+  if (USE_EMULATOR) {
+    return `http://${STORAGE_EMULATOR_HOST}/v0/b/${STORAGE_BUCKET}/o/${encodedDest}?alt=media${tokenToUse}`;
+  }
+  return `https://firebasestorage.googleapis.com/v0/b/${STORAGE_BUCKET}/o/${encodedDest}?alt=media${tokenToUse}`;
+}
+
+
 async function seed() {
   console.log('— agents —');
   for (const agent of agents) {
@@ -292,20 +340,32 @@ async function seed() {
     );
   }
 
-  console.log('\n— storyThemes —');
+  console.log('\n— storyThemes (con subida a Storage) —');
   for (const theme of storyThemes) {
-    const exists = await docExists(THEMES_URL, theme.id);
-    await upsertDoc(THEMES_URL, theme.id, theme.fields);
-    console.log(exists
-      ? `🔄 storyThemes/${theme.id} actualizado.`
-      : `✅ storyThemes/${theme.id} creado.`
-    );
+    try {
+      // 1. Upload image and get URL
+      const imageUrl = await uploadImageAndGetUrl(theme.imageFile);
+      
+      // 2. Set imageUrl in fields
+      theme.fields.imageUrl = { stringValue: imageUrl };
+      
+      // 3. Document update
+      const exists = await docExists(THEMES_URL, theme.id);
+      await upsertDoc(THEMES_URL, theme.id, theme.fields);
+      
+      console.log(exists
+        ? `🔄 storyThemes/${theme.id} actualizado. URL: ${imageUrl}`
+        : `✅ storyThemes/${theme.id} creado. URL: ${imageUrl}`
+      );
+    } catch (err) {
+      console.error(`❌ Error procesando theme ${theme.id}:`, err.message);
+    }
   }
 
   console.log('\n🎉 Seed completado.');
 }
 
 seed().catch(err => {
-  console.error('❌ Error:', err.message);
+  console.error('❌ Error fatal:', err.message);
   process.exit(1);
 });

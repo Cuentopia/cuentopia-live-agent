@@ -22,13 +22,13 @@ const VISION_RULES =
   '- Expresión neutra → haz una pregunta directa al niño\n\n';
 
 const VISION_HEADER =
-  'Recibes imágenes de la cámara frontal cada 2 segundos. ' +
-  'DEBES analizar CADA imagen antes de continuar. ' +
-  'Confirma brevemente qué ves antes de cada fragmento.\n\n';
+  'Tienes acceso SILENCIOSO a la cámara frontal del niño. ' +
+  'NUNCA describas en voz alta lo que ves. ' +
+  'Usa las imágenes únicamente para decidir internamente cómo adaptar el cuento.\n\n';
 
 const FORMAT_RULES =
   'FORMATO: Máximo 2-3 frases por turno. Español. ' +
-  'Describe lo que ves en la cámara al inicio y úsalo en la historia.';
+  'Adapta el cuento en silencio a lo que ves. Nunca menciones la cámara ni describas la cara del niño.';
 
 const agents = [
   {
@@ -59,7 +59,7 @@ const agents = [
         'Luego pregúntale su nombre.'
       },
       visionNudgeText: { stringValue:
-        'Mira esta imagen. ¿Qué expresión tiene el niño? Ajusta tu tono a esa emoción.'
+        'Analiza esta imagen en silencio. Aplica las REGLAS VISUALES ahora mismo. No lo verbalices — solo adapta tu respuesta.'
       },
     },
   },
@@ -88,8 +88,8 @@ const agents = [
         'Adapta el cuento a lo que acabas de ver.'
       },
       visionNudgeText: { stringValue:
-        'Mira esta imagen. Describe en UNA frase qué expresión tiene el niño ahora mismo ' +
-        'y ajusta el siguiente fragmento del cuento a esa emoción.'
+        'Analiza esta imagen. Identifica la emoción del niño y aplica las REGLAS VISUALES INMEDIATAMENTE. ' +
+        'NO lo verbalices — solo cambia el rumbo del cuento ahora mismo.'
       },
     },
   },
@@ -117,8 +117,8 @@ const agents = [
         'Empieza un cuento sobre "{topic}" donde el protagonista, con la ayuda de su amigo Valentín, descubre que aquello que parecía dar miedo, en realidad era algo maravilloso.'
       },
       visionNudgeText: { stringValue:
-        'Mira esta imagen. ¿El niño parece tenso, asustado o tranquilo? ' +
-        'Describe su expresión en una frase y ajusta el cuento a esa emoción ahora mismo.'
+        'Analiza esta imagen en silencio. Aplica las REGLAS VISUALES sin verbalizarlas: ' +
+        'si está tenso → introduce humor suave YA; si llora → trae reconfort YA.'
       },
     },
   },
@@ -147,8 +147,8 @@ const agents = [
         'El tono debe ser como una canción de cuna, suave y reconfortante.'
       },
       visionNudgeText: { stringValue:
-        'Mira esta imagen. ¿El niño tiene los ojos cerrados o muy abiertos? ' +
-        'Describe su estado en una frase y ajusta el ritmo de la narración.'
+        'Analiza esta imagen en silencio. Ajusta el ritmo sin verbalizarlo: ' +
+        'ojos cerrados → ralentiza y baja la intensidad; ojos abiertos → mantén la calma suave.'
       },
     },
   },
@@ -177,8 +177,8 @@ const agents = [
         'Empieza IN MEDIAS RES: en mitad de la acción.'
       },
       visionNudgeText: { stringValue:
-        'Mira esta imagen. ¿El niño está emocionado, aburrido o distraído? ' +
-        'Di su expresión en una frase e introduce un giro épico si lo necesita.'
+        'Analiza esta imagen. Si el niño está aburrido o distraído: introduce UN GIRO ÉPICO ahora mismo. ' +
+        'Si está emocionado: amplifica la acción. NO lo verbalices — solo hazlo.'
       },
     },
   },

@@ -1,51 +1,68 @@
-import * as functions from 'firebase-functions';
-import { genkit, z } from 'genkit';
-import { googleAI, gemini20Flash } from '@genkit-ai/googleai';
-import { firebase } from '@genkit-ai/firebase';
+import {onCall, HttpsError} from "firebase-functions/v2/https";
+import * as admin from "firebase-admin";
 
-// 1. Configuración de GenKit
-const ai = genkit({
-  plugins: [
-    googleAI(), // Requiere GOOGLE_GENAI_API_KEY
-    firebase(),
-  ],
-});
+admin.initializeApp();
 
-// 2. Definición del Narrador de Cuentopia (Prompt Maestro)
-// Este flujo orquestará la narrativa basándose en el estado emocional.
-export const cuentopiaStoryteller = ai.defineFlow(
-  {
-    name: 'cuentopiaStoryteller',
-    inputSchema: z.object({
-      childName: z.string().optional().default('Pequeño Aventurero'),
-      currentEmotion: z.string().optional().default('neutral'),
-      storyContext: z.string().optional().default('El inicio de un gran viaje'),
-    }),
-    outputSchema: z.string(),
-  },
-  async (input) => {
-    const response = await ai.generate({
-      model: gemini20Flash,
-      system: `
-        ROLE: You are the Cuentopia Storyteller, an empathetic and pedagogical narrator for children.
-        TASK: Narrate an interactive bedtime story.
-        
-        DYNAMIC ADAPTATION:
-        - If 'currentEmotion' is 'scared' or 'fearful', pivot to a calming, reassuring resolution immediately.
-        - If 'currentEmotion' is 'excited', match the energy and increase the narrative pace.
-        - Keep responses concise (under 3 sentences) to maintain engagement.
-        - Do not diagnose emotions clinically; use cues to adjust the narrative tone.
-      `,
-      prompt: `Narrate for ${input.childName}. The current situation is: ${input.storyContext}. 
-               The child seems ${input.currentEmotion}.`,
+interface AgentFirestoreData {
+  model: string;
+  systemPrompt: string;
+  initialPromptTemplate: string;
+  visionNudgeIntervalSeconds: number;
+  visionNudgeText: string;
+  voiceName: string;
+}
+
+const GEMINI_WS_URL =
+  "wss://generativelanguage.googleapis.com/ws/" +
+  "google.ai.generativelanguage.v1beta" +
+  ".GenerativeService.BidiGenerateContent";
+
+/**
+ * Provee la configuración para la Gemini Multimodal Live API.
+ * La configuración del agente vive exclusivamente en Firestore.
+ */
+export const getLiveConfig = onCall({cors: true}, async (request) => {
+  const apiKey = process.env["GOOGLE_GENAI_API_KEY"];
+
+  if (!apiKey) {
+    throw new HttpsError(
+      "internal",
+      "Configuración del servidor incompleta."
+    );
+  }
+
+  const agentId =
+    (request.data?.agentId as string | undefined) ?? "narrator-default";
+
+  const doc = await admin.firestore()
+    .collection("agents")
+    .doc(agentId)
+    .get()
+    .catch((err: unknown) => {
+      console.error("Error leyendo Firestore:", err);
+      throw new HttpsError(
+        "unavailable",
+        "No se pudo acceder a la configuración del agente."
+      );
     });
 
-    return response.text;
+  if (!doc.exists) {
+    throw new HttpsError(
+      "not-found",
+      `Agente '${agentId}' no encontrado. Ejecuta el script de seed.`
+    );
   }
-);
 
-// 3. Exposición de la Cloud Function
-export const storyteller = functions.https.onCall(async (request) => {
-  // Aquí es donde el frontend llamará para obtener la narrativa.
-  return await cuentopiaStoryteller(request.data);
+  const data = doc.data() as AgentFirestoreData;
+
+  return {
+    apiKey,
+    baseUrl: GEMINI_WS_URL,
+    model: data.model,
+    systemPrompt: data.systemPrompt,
+    initialPromptTemplate: data.initialPromptTemplate,
+    visionNudgeIntervalSeconds: data.visionNudgeIntervalSeconds,
+    visionNudgeText: data.visionNudgeText,
+    voiceName: data.voiceName,
+  };
 });

@@ -1,0 +1,127 @@
+<ion-content [fullscreen]="true" [scrollY]="false">
+  <!-- Background Image Layer -->
+  <div class="bg-layer"></div>
+
+  <!-- Centerpiece -->
+  <div class="centerpiece">
+    <!-- Atmospheric Bloom -->
+    <div class="orb-bloom" [class.active]="facade.isSessionActive()"></div>
+
+    <!-- The Orb Container -->
+    <div
+      class="orb"
+      [class.active]="facade.isSessionActive()"
+      [class.connecting]="facade.sessionState() === 'connecting'"
+    >
+      <div class="orb-ring"></div>
+      <div class="orb-ring orb-ring--secondary"></div>
+
+      @if (facade.hasStream()) {
+        <!-- Camera Hero (replaces orb core when active) -->
+        <div class="camera-hero">
+          <video #previewVideo autoplay muted playsinline class="video-feed"></video>
+          @if (facade.currentEmotion().type !== 'neutral') {
+            <div class="emotion-badge">
+              @switch (facade.currentEmotion().type) {
+                @case ('happy') {
+                  <ion-icon name="happy" color="success"></ion-icon>
+                }
+                @case ('scared') {
+                  <ion-icon name="alert-circle" color="warning"></ion-icon>
+                }
+                @case ('excited') {
+                  <ion-icon name="happy" color="tertiary"></ion-icon>
+                }
+              }
+            </div>
+          }
+          <span class="camera-label">Live AI</span>
+        </div>
+      } @else {
+        <!-- Orb Core (shown when camera is inactive) -->
+        <div class="orb-core">
+          <div class="orb-gradient"></div>
+        </div>
+      }
+    </div>
+
+    <!-- Status Text / Waveform -->
+    <div class="status-area">
+      @switch (facade.sessionState()) {
+        @case ('idle') {
+          <p class="status-text">¿Cómo te llamas?</p>
+          <ion-input
+            class="name-input"
+            placeholder="Tu nombre..."
+            maxlength="20"
+            [value]="childName()"
+            (ionInput)="childName.set($event.detail.value ?? '')"
+          ></ion-input>
+        }
+        @case ('connecting') {
+          <ion-spinner name="dots" color="primary"></ion-spinner>
+          <p class="status-text">Conectando con CuentopIA...</p>
+        }
+        @case ('active') {
+          <p class="status-text story-quote">
+            {{ facade.currentStory() || '...' }}
+          </p>
+          <!-- Audio Waveform — driven by AnalyserNode -->
+          <div class="waveform">
+            @for (bar of facade.waveformBars(); track $index) {
+              <div class="waveform-bar" [style.height.px]="bar"></div>
+            }
+          </div>
+        }
+        @case ('error') {
+          <ion-icon name="alert-circle" class="error-icon"></ion-icon>
+          <p class="status-text error-text">{{ facade.errorMessage() }}</p>
+        }
+      }
+    </div>
+  </div>
+
+  <!-- Bottom Controls -->
+  <div class="bottom-controls">
+    @switch (facade.sessionState()) {
+      @case ('idle') {
+        <button class="control-btn primary-action" (click)="start()">
+          <div class="control-icon-wrap">
+            <ion-icon name="mic"></ion-icon>
+          </div>
+          <span class="control-label">Empezar</span>
+        </button>
+      }
+      @case ('connecting') {
+        <button class="control-btn" disabled>
+          <div class="control-icon-wrap">
+            <ion-spinner name="crescent" color="light"></ion-spinner>
+          </div>
+          <span class="control-label">Conectando...</span>
+        </button>
+      }
+      @case ('active') {
+        <button class="control-btn" (click)="stop()">
+          <div class="control-icon-wrap danger">
+            <ion-icon name="stop"></ion-icon>
+          </div>
+          <span class="control-label">Detener</span>
+        </button>
+        <button class="control-btn" disabled>
+          <div class="control-icon-wrap">
+            <ion-icon name="book-outline"></ion-icon>
+          </div>
+          <span class="control-label">Historia</span>
+        </button>
+      }
+      @case ('error') {
+        <button class="control-btn primary-action" (click)="start()">
+          <div class="control-icon-wrap">
+            <ion-icon name="refresh"></ion-icon>
+          </div>
+          <span class="control-label">Reintentar</span>
+        </button>
+      }
+    }
+  </div>
+</ion-content>

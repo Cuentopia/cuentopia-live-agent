@@ -38,7 +38,7 @@
           <p class="status-text">¡Toca para comenzar!</p>
         }
         @case ('connecting') {
-          <ion-spinner name="dots" color="primary"></ion-spinner>
+          <ion-spinner name="dots" color="primary" />
           <p class="status-text">Conectando con CuentopIA...</p>
         }
         @case ('active') {
@@ -53,7 +53,7 @@
           </div>
         }
         @case ('error') {
-          <ion-icon name="alert-circle" class="error-icon"></ion-icon>
+          <ion-icon name="alert-circle" class="error-icon" />
           <p class="status-text error-text">{{ facade.errorMessage() }}</p>
         }
       }
@@ -66,7 +66,7 @@
       @case ('idle') {
         <button class="control-btn primary-action" (click)="start()">
           <div class="control-icon-wrap">
-            <ion-icon name="mic"></ion-icon>
+            <ion-icon name="mic" />
           </div>
           <span class="control-label">Empezar</span>
         </button>
@@ -74,7 +74,7 @@
       @case ('connecting') {
         <button class="control-btn" disabled>
           <div class="control-icon-wrap">
-            <ion-spinner name="crescent" color="light"></ion-spinner>
+            <ion-spinner name="crescent" color="light" />
           </div>
           <span class="control-label">Conectando...</span>
         </button>
@@ -82,13 +82,13 @@
       @case ('active') {
         <button class="control-btn" (click)="stop()">
           <div class="control-icon-wrap danger">
-            <ion-icon name="stop"></ion-icon>
+            <ion-icon name="stop" />
           </div>
           <span class="control-label">Detener</span>
         </button>
         <button class="control-btn" disabled>
           <div class="control-icon-wrap">
-            <ion-icon name="book-outline"></ion-icon>
+            <ion-icon name="book-outline" />
           </div>
           <span class="control-label">Historia</span>
         </button>
@@ -96,7 +96,7 @@
       @case ('error') {
         <button class="control-btn primary-action" (click)="start()">
           <div class="control-icon-wrap">
-            <ion-icon name="refresh"></ion-icon>
+            <ion-icon name="refresh" />
           </div>
           <span class="control-label">Reintentar</span>
         </button>

@@ -45,7 +45,7 @@ interface StoryTheme {
 
       @if (topics() === undefined) {
         <div class="ion-text-center ion-padding-top">
-          <ion-spinner name="dots" color="primary"></ion-spinner>
+          <ion-spinner name="dots" color="primary" />
         </div>
       } @else {
         <ion-grid>
@@ -58,7 +58,7 @@ interface StoryTheme {
                       <img [src]="topic.imageUrl" [alt]="topic.title" class="theme-image" />
                     } @placeholder {
                       <div class="image-placeholder">
-                        <ion-spinner name="crescent"></ion-spinner>
+                        <ion-spinner name="crescent" />
                       </div>
                     }
                   }

@@ -33,7 +33,7 @@ interface SessionEntry {
         <ion-title>{{ topic }}</ion-title>
         <ion-buttons slot="end">
           <ion-button (click)="dismiss()">
-            <ion-icon slot="icon-only" name="close"></ion-icon>
+            <ion-icon slot="icon-only" name="close" />
           </ion-button>
         </ion-buttons>
       </ion-toolbar>
@@ -103,16 +103,15 @@ const PARENT_PIN = '1234';
     <ion-content [fullscreen]="true">
       @if (!isUnlocked()) {
         <div class="lock-screen ion-padding">
-          <ion-icon name="lock-closed" size="large" color="primary"></ion-icon>
+          <ion-icon name="lock-closed" size="large" color="primary" />
           <h2>Acceso Restringido</h2>
           <p>Introduce tu código de padre para ver el progreso.</p>
           <ion-item lines="none" class="pin-input">
-            <ion-input
-              type="password"
+            <ion-input type="password"
               placeholder="PIN"
               [value]="pinValue()"
               (ionInput)="pinValue.set($event.detail.value ?? '')"
-            ></ion-input>
+             />
           </ion-item>
           @if (pinError()) {
             <p style="color: var(--ion-color-danger); margin: 0 0 12px;">PIN incorrecto</p>
@@ -121,16 +120,16 @@ const PARENT_PIN = '1234';
         </div>
       } @else {
         <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
-          <ion-refresher-content></ion-refresher-content>
+          <ion-refresher-content />
         </ion-refresher>
         <div class="dashboard ion-padding">
           @if (loading()) {
             <div class="ion-text-center ion-padding">
-              <ion-spinner name="dots" color="primary"></ion-spinner>
+              <ion-spinner name="dots" color="primary" />
             </div>
           } @else if (sessions().length === 0) {
             <div class="ion-text-center ion-padding">
-              <ion-icon name="book" size="large" color="medium"></ion-icon>
+              <ion-icon name="book" size="large" color="medium" />
               <p>Aún no hay sesiones registradas.</p>
             </div>
           } @else {
@@ -154,7 +153,7 @@ const PARENT_PIN = '1234';
               @for (session of sessions(); track session.id) {
                 <ion-item-sliding>
                   <ion-item (click)="openDetail(session)" button="true" detail="true">
-                    <ion-icon name="book" slot="start" color="primary"></ion-icon>
+                    <ion-icon name="book" slot="start" color="primary" />
                     <ion-label>
                       <h3>{{ session.topic }}</h3>
                       <p>{{ formatDate(session.startedAt) }}</p>
@@ -166,7 +165,7 @@ const PARENT_PIN = '1234';
                   </ion-item>
                   <ion-item-options side="end">
                     <ion-item-option color="danger" expandable="true" (click)="deleteSession(session.id)">
-                      <ion-icon slot="icon-only" name="trash"></ion-icon>
+                      <ion-icon slot="icon-only" name="trash" />
                     </ion-item-option>
                   </ion-item-options>
                 </ion-item-sliding>

@@ -7,7 +7,7 @@
 - **Frontend UI:** Ionic 8 + Angular 20 Standalone (Ionic native components ONLY).
 - **State Management:** Angular Signals (Primary state choice).
 - **Mobile:** Capacitor 8.
-- **AI Implementation:** Gemini Live API (WebSocket direct) using model `gemini-2.5-flash-native-audio-latest`.
+- **AI Implementation:** Gemini Live API via `@google/genai` SDK using model `gemini-2.5-flash-native-audio-latest`.
 - **Backend:** Firebase Functions v2 (Config/secrets only), Firestore (Agent config), Firebase Hosting.
 - **Architecture:** STRICT Hexagonal Architecture.
 

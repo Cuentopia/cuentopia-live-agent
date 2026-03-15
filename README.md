@@ -1,6 +1,8 @@
 # Cuentopia — Multimodal Empathy for Therapeutic Storytelling
 
-An AI-powered storytelling agent that sees, hears and emotionally responds to children in real time. Built for the **Gemini Live Agent Challenge**.
+An AI-powered storytelling agent that sees, hears and emotionally responds to children in real time.
+
+**[🚀 Live Demo on Devpost](https://devpost.com/software/cuentopia-multimodal-empathy-for-therapeutic-storytelling)**
 
 ---
 

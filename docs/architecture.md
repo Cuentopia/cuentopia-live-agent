@@ -45,7 +45,7 @@ graph TB
     end
 
     subgraph EXTERNAL["☁️ External Systems"]
-        GLA["Gemini Live API\nWebSocket · gemini-2.5-flash-native-audio-latest"]
+        GLA["Gemini Live API\n@google/genai · gemini-2.5-flash-native-audio-latest"]
         FF["Firebase Functions v2\ngetLiveConfig()"]
         FS["Firestore\nagents · storyThemes · sessions"]
         FAUTH["Firebase Auth\nAnonymous"]

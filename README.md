@@ -2,7 +2,11 @@
 
 An AI-powered storytelling agent that sees, hears and emotionally responds to children in real time.
 
-**[🚀 Live Demo on Devpost](https://devpost.com/software/cuentopia-multimodal-empathy-for-therapeutic-storytelling)**
+[![Demo Video](https://img.shields.io/badge/Demo-YouTube-red?logo=youtube)](https://youtu.be/tLtCzc7FQwc)
+[![GCP Deployment](https://img.shields.io/badge/Deployed-Firebase-orange?logo=firebase)](https://youtu.be/z7YAARkMt1k)
+[![Devpost](https://img.shields.io/badge/Hackathon-Devpost-003E54)](https://devpost.com/software/cuentopia-multimodal-empathy-for-therapeutic-storytelling)
+
+> Submitted to the [Gemini Live Agent Challenge](https://geminiliveagentchallenge.devpost.com/) — deadline March 16, 2026.
 
 ---
 
@@ -45,6 +49,16 @@ Each agent in Firestore defines:
 ---
 
 ## Technical Architecture
+
+### Gemini ↔ GCP Integration
+
+![Integration Diagram](resources/integration_diagram.png)
+
+### Hexagonal Architecture
+
+![Architecture Diagram](resources/architecture_diagram.png)
+
+### Code flow
 
 ```
 Browser (Ionic/Angular)
@@ -166,4 +180,10 @@ A PIN-protected section (`/tabs/progress`) lets parents review their child's ses
 
 ---
 
-*Submitted to the [Gemini Live Agent Challenge](https://geminiliveagentchallenge.devpost.com/).*
+---
+
+## Live deployment
+
+- **Web app:** [cuentopia-live-agent-mvp-6283.web.app](https://cuentopia-live-agent-mvp-6283.web.app)
+- **Demo video:** [Watch on YouTube](https://youtu.be/tLtCzc7FQwc)
+- **GCP deployment proof:** [Watch on YouTube](https://youtu.be/z7YAARkMt1k)
